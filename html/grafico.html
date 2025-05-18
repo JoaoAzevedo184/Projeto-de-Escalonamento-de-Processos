@@ -4,8 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="./css/grafico.css">
 </head>
 <body>
-    
+    <div class="container">
+        <h1>Visualização do Escalonamento de Processos</h1>
+        
+        <div class="grafico-container">
+            <div class="time-indicators" id="time-indicators">
+                <!-- Indicadores de tempo serão gerados pelo JavaScript -->
+            </div>
+            
+            <div class="gantt-chart" id="gantt-chart">
+                <!-- As linhas de processo serão geradas pelo JavaScript -->
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color execution-block"></div>
+                    <span>Em Execução</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wait-block"></div>
+                    <span>Em Espera</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metrics">
+            <h2>Métricas de Desempenho</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Tempo Médio de Espera</h3>
+                    <div class="metric-value" id="tempo-espera">0.0</div>
+                    <div class="metric-unit">unidades de tempo</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Tempo Médio de Retorno</h3>
+                    <div class="metric-value" id="tempo-retorno">0.0</div>
+                    <div class="metric-unit">unidades de tempo</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Throughput</h3>
+                    <div class="metric-value" id="throughput">0.0</div>
+                    <div class="metric-unit">processos/ut</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Utilização da CPU</h3>
+                    <div class="metric-value" id="utilizacao-cpu">0%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="btn-voltar">Voltar</button>
+            <button id="btn-nova-simulacao">Nova Simulação</button>
+        </div>
+    </div>
+    <script src="./js/scriptGra.js"></script>
 </body>
 </html>
