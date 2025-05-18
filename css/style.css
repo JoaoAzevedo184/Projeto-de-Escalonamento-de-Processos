@@ -1,3 +1,4 @@
+
 /* Define o plano de fundo com a imagem */
 body {
     margin: 0;
@@ -72,6 +73,7 @@ label {
     margin: 8px 0;
     cursor: pointer;
 }
+
 /* Ajuste para opções lado a lado nas seções 3 e 4 */
 section:nth-child(4) div, 
 section:nth-child(5) div {
@@ -100,4 +102,127 @@ section:nth-child(5) div {
     margin: 0;
     line-height: 1.5;
     text-align: justify;
+}
+
+/* Estilos adicionais para o formulário de processos */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 15px;
+}
+
+.processo-form {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.processo-form h3 {
+    margin-top: 0;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 5px;
+}
+
+.form-row {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.form-row label {
+    flex: 1;
+    margin: 0;
+}
+
+.form-row input {
+    flex: 2;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #ccc;
+    margin-left: 10px;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Estilos para a visualização da execução */
+.visualizacao-section {
+    max-width: 800px;
+}
+
+.info-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.tabela-processos {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.tabela-processos table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+.tabela-processos th, .tabela-processos td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tabela-processos th {
+    background: rgba(0, 123, 255, 0.3);
+}
+
+.grafico-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.grafico {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    min-height: 100px;
+}
+
+.metricas-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.metricas {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Estilo para o campo de quantum */
+.quantum-section {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
