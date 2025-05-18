@@ -1,18 +1,19 @@
 /**
- * Implementação do algoritmo de escalonamento Shortest Remaining Time First (SRTF)
+ * Implementação do algoritmo de escalonamento por Loteria
  * 
- * O SRTF é a versão preemptiva do SJF. Neste algoritmo, o processo com o menor
- * tempo restante de execução é selecionado para execução. Se um novo processo
- * chega com tempo de execução menor que o tempo restante do processo atual,
- * ocorre preempção (o processo atual é interrompido em favor do novo).
+ * O algoritmo de Loteria é um método de escalonamento probabilístico onde cada processo
+ * recebe um número de bilhetes e o escalonador seleciona aleatoriamente um bilhete para
+ * determinar qual processo será executado. Processos com mais bilhetes têm maior probabilidade
+ * de serem selecionados.
  */
 
 /**
- * Executa o algoritmo de escalonamento SRTF
- * @param {Array} processos - Array de objetos de processo: {id, chegada, duracao}
+ * Executa o algoritmo de escalonamento por Loteria
+ * @param {Array} processos - Array de objetos de processo: {id, chegada, duracao, bilhetes}
+ * @param {Number} quantum - Valor do quantum de tempo (opcional, padrão: 1)
  * @return {Object} Resultado da execução com timeline e métricas
  */
-function shortestRemainingTimeFirst(processos) {
+function escalonamentoLoteria(processos, quantum = 1) {
     // Clonar os processos para não modificar o array original
     const processosCopia = processos.map(p => ({
         ...p,
@@ -22,7 +23,8 @@ function shortestRemainingTimeFirst(processos) {
         concluido: false,                // Se o processo foi concluído
         tempoEspera: 0,                  // Tempo total de espera
         tempoRetorno: 0,                 // Tempo de retorno (turnaround)
-        tempoResposta: -1                // Tempo de resposta (primeira execução)
+        tempoResposta: -1,               // Tempo de resposta (primeira execução)
+        bilhetes: p.bilhetes || 1        // Número de bilhetes (padrão: 1)
     }));
 
     // Ordenar por tempo de chegada
@@ -30,7 +32,8 @@ function shortestRemainingTimeFirst(processos) {
 
     // Resultado da execução
     const resultado = {
-        algoritmo: 'SRTF',
+        algoritmo: 'LOTERIA',
+        quantum: quantum,
         tempoTotal: 0,
         execucao: [],
         metricas: {
@@ -44,25 +47,18 @@ function shortestRemainingTimeFirst(processos) {
     // Variáveis de controle
     let tempoAtual = 0;
     let processosRestantes = processosCopia.length;
-    let processoAtualId = null;
     let idleTime = 0;
+    let processoAtualId = null;
 
     // Continuar até que todos os processos sejam concluídos
     while (processosRestantes > 0) {
-        let processoMenorTempoRestante = null;
-        let menorTempoRestante = Infinity;
+        // Verificar quais processos estão disponíveis neste momento
+        const processosDisponiveis = processosCopia.filter(p => 
+            !p.concluido && p.chegada <= tempoAtual
+        );
 
-        // Encontrar o processo com menor tempo restante entre os processos que já chegaram
-        for (let i = 0; i < processosCopia.length; i++) {
-            const processo = processosCopia[i];
-            if (!processo.concluido && processo.chegada <= tempoAtual && processo.tempoRestante < menorTempoRestante) {
-                menorTempoRestante = processo.tempoRestante;
-                processoMenorTempoRestante = processo;
-            }
-        }
-
-        // Se não encontrar nenhum processo disponível, avança o tempo até o próximo processo chegar
-        if (!processoMenorTempoRestante) {
+        // Se não há processos disponíveis, avançar o tempo
+        if (processosDisponiveis.length === 0) {
             // Encontrar o próximo processo a chegar
             const proximoProcesso = processosCopia
                 .filter(p => !p.concluido && p.chegada > tempoAtual)
@@ -70,15 +66,13 @@ function shortestRemainingTimeFirst(processos) {
 
             if (proximoProcesso) {
                 // Adicionar período ocioso ao resultado
-                if (proximoProcesso.chegada > tempoAtual) {
-                    resultado.execucao.push({
-                        tipo: 'idle',
-                        inicio: tempoAtual,
-                        fim: proximoProcesso.chegada
-                    });
-                    idleTime += (proximoProcesso.chegada - tempoAtual);
-                }
+                resultado.execucao.push({
+                    tipo: 'idle',
+                    inicio: tempoAtual,
+                    fim: proximoProcesso.chegada
+                });
                 
+                idleTime += (proximoProcesso.chegada - tempoAtual);
                 tempoAtual = proximoProcesso.chegada;
             } else {
                 // Não há mais processos para chegar, algo deu errado
@@ -88,74 +82,86 @@ function shortestRemainingTimeFirst(processos) {
             continue;
         }
 
-        // Se houver uma troca de processo, finalize o bloco anterior e inicie um novo
-        if (processoAtualId !== processoMenorTempoRestante.id) {
-            processoAtualId = processoMenorTempoRestante.id;
+        // Distribuir bilhetes para os processos disponíveis
+        let totalBilhetes = 0;
+        const bilhetesDistribuidos = [];
+
+        processosDisponiveis.forEach(processo => {
+            for (let i = 0; i < processo.bilhetes; i++) {
+                bilhetesDistribuidos.push(processo.id);
+                totalBilhetes++;
+            }
+        });
+
+        // Selecionar um bilhete aleatoriamente
+        const bilheteSorteado = Math.floor(Math.random() * totalBilhetes);
+        const processoSorteadoId = bilhetesDistribuidos[bilheteSorteado];
+        
+        // Encontrar o processo sorteado
+        const processoSorteado = processosDisponiveis.find(p => p.id === processoSorteadoId);
+
+        // Verificar se houve mudança de processo
+        if (processoAtualId !== processoSorteado.id) {
+            // Se havia um processo em execução, finalizar seu bloco
+            if (processoAtualId !== null && resultado.execucao.length > 0) {
+                resultado.execucao[resultado.execucao.length - 1].fim = tempoAtual;
+            }
             
-            // Registrar o tempo de resposta (primeira vez que o processo é executado)
-            if (processoMenorTempoRestante.tempoResposta === -1) {
-                processoMenorTempoRestante.tempoResposta = tempoAtual - processoMenorTempoRestante.chegada;
+            processoAtualId = processoSorteado.id;
+
+            // Registrar o tempo de resposta (primeira execução)
+            if (processoSorteado.tempoResposta === -1) {
+                processoSorteado.tempoResposta = tempoAtual - processoSorteado.chegada;
             }
 
             // Registrar o tempo de início de execução se for a primeira execução
-            if (processoMenorTempoRestante.inicioExecucao === null) {
-                processoMenorTempoRestante.inicioExecucao = tempoAtual;
+            if (processoSorteado.inicioExecucao === null) {
+                processoSorteado.inicioExecucao = tempoAtual;
             }
 
-            // Atualizar a última vez que o processo foi executado
-            processoMenorTempoRestante.ultimaExecucao = tempoAtual;
-
             // Iniciar um novo bloco de execução
-            const novoBloco = {
+            resultado.execucao.push({
                 tipo: 'processo',
-                processo: processoMenorTempoRestante.id,
+                processo: processoSorteado.id,
                 inicio: tempoAtual,
                 fim: null // Será definido posteriormente
-            };
-            resultado.execucao.push(novoBloco);
+            });
         }
 
-        // Executar o processo por 1 unidade de tempo
-        tempoAtual++;
-        processoMenorTempoRestante.tempoRestante--;
+        // Calcular o tempo que este processo vai executar neste momento
+        const tempoExecucao = Math.min(quantum, processoSorteado.tempoRestante);
+        
+        // Atualizar a última vez que o processo foi executado
+        processoSorteado.ultimaExecucao = tempoAtual;
+
+        // Atualizar o tempo restante do processo
+        processoSorteado.tempoRestante -= tempoExecucao;
+        tempoAtual += tempoExecucao;
 
         // Verificar se o processo terminou
-        if (processoMenorTempoRestante.tempoRestante <= 0) {
+        if (processoSorteado.tempoRestante <= 0) {
             // Processo concluído
-            processoMenorTempoRestante.concluido = true;
+            processoSorteado.concluido = true;
             processosRestantes--;
 
             // Calcular métricas para este processo
-            processoMenorTempoRestante.tempoRetorno = tempoAtual - processoMenorTempoRestante.chegada;
-            processoMenorTempoRestante.tempoEspera = processoMenorTempoRestante.tempoRetorno - processoMenorTempoRestante.duracao;
+            processoSorteado.tempoRetorno = tempoAtual - processoSorteado.chegada;
+            processoSorteado.tempoEspera = processoSorteado.tempoRetorno - processoSorteado.duracao;
 
             // Adicionar métricas deste processo ao resultado
             resultado.metricas.processos.push({
-                id: processoMenorTempoRestante.id,
-                tempoEspera: processoMenorTempoRestante.tempoEspera,
-                tempoRetorno: processoMenorTempoRestante.tempoRetorno,
-                tempoResposta: processoMenorTempoRestante.tempoResposta
+                id: processoSorteado.id,
+                tempoEspera: processoSorteado.tempoEspera,
+                tempoRetorno: processoSorteado.tempoRetorno,
+                tempoResposta: processoSorteado.tempoResposta
             });
 
-            // Marcar o fim deste bloco de execução
+            // Finalizar o bloco de execução atual
             resultado.execucao[resultado.execucao.length - 1].fim = tempoAtual;
             processoAtualId = null;
         } else {
-            // Verificar se precisamos fazer preempção no próximo ciclo
-            let novoProcessoPreemptivo = false;
-            
-            // Verificar se há algum processo chegando no próximo ciclo com tempo menor
-            for (let i = 0; i < processosCopia.length; i++) {
-                const processo = processosCopia[i];
-                if (!processo.concluido && processo.chegada === tempoAtual && 
-                    processo.tempoRestante < processoMenorTempoRestante.tempoRestante) {
-                    novoProcessoPreemptivo = true;
-                    break;
-                }
-            }
-            
-            // Se houver preempção ou o processo terminou, finalize o bloco atual
-            if (novoProcessoPreemptivo) {
+            // Se o quantum terminou, finalizar o bloco atual
+            if (tempoExecucao === quantum) {
                 resultado.execucao[resultado.execucao.length - 1].fim = tempoAtual;
                 processoAtualId = null;
             }
@@ -184,9 +190,10 @@ function shortestRemainingTimeFirst(processos) {
 /**
  * Valida os parâmetros de entrada do algoritmo
  * @param {Array} processos - Array de objetos de processo
+ * @param {Number} quantum - Valor do quantum (opcional)
  * @return {Object} Objeto com status e mensagem de erro, se houver
  */
-function validarParametrosSRTF(processos) {
+function validarParametrosLoteria(processos, quantum) {
     if (!Array.isArray(processos) || processos.length === 0) {
         return { valido: false, mensagem: 'Lista de processos vazia ou inválida' };
     }
@@ -214,19 +221,36 @@ function validarParametrosSRTF(processos) {
                 mensagem: `Processo ${p.id} tem tempo de chegada inválido. O tempo de chegada não pode ser negativo.` 
             };
         }
+
+        // Verificar bilhetes (se fornecido)
+        if (p.bilhetes !== undefined && (typeof p.bilhetes !== 'number' || p.bilhetes <= 0)) {
+            return { 
+                valido: false, 
+                mensagem: `Processo ${p.id} tem número de bilhetes inválido. O número de bilhetes deve ser maior que zero.` 
+            };
+        }
+    }
+
+    // Verificar quantum (se fornecido)
+    if (quantum !== undefined && (typeof quantum !== 'number' || quantum <= 0)) {
+        return { 
+            valido: false, 
+            mensagem: 'Valor de quantum inválido. O quantum deve ser maior que zero.' 
+        };
     }
 
     return { valido: true };
 }
 
 /**
- * Função principal que executa o algoritmo SRTF com validação
+ * Função principal que executa o algoritmo de Loteria com validação
  * @param {Array} processos - Array de objetos de processo
+ * @param {Number} quantum - Valor do quantum (opcional)
  * @return {Object} Resultado da execução ou objeto de erro
  */
-function executarSRTF(processos) {
+function executarLoteria(processos, quantum) {
     // Validar parâmetros
-    const validacao = validarParametrosSRTF(processos);
+    const validacao = validarParametrosLoteria(processos, quantum);
     if (!validacao.valido) {
         return { 
             erro: true, 
@@ -236,26 +260,26 @@ function executarSRTF(processos) {
 
     try {
         // Executar o algoritmo
-        return shortestRemainingTimeFirst(processos);
+        return escalonamentoLoteria(processos, quantum);
     } catch (error) {
         return { 
             erro: true, 
-            mensagem: 'Erro ao executar o algoritmo SRTF: ' + error.message 
+            mensagem: 'Erro ao executar o algoritmo de Loteria: ' + error.message 
         };
     }
 }
 
 // Função wrapper para manter a consistência com os outros algoritmos
-function SRTF(processos) {
-    return executarSRTF(processos);
+function LOTERIA(processos, quantum) {
+    return executarLoteria(processos, quantum);
 }
 
 // Exportar funções
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
-        executarSRTF,
-        shortestRemainingTimeFirst,
-        validarParametrosSRTF,
-        SRTF
+        executarLoteria,
+        escalonamentoLoteria,
+        validarParametrosLoteria,
+        LOTERIA
     };
 }

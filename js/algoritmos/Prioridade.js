@@ -246,11 +246,22 @@ function executarPrioridade(processos) {
     }
 }
 
+// Função wrapper para manter a consistência com os outros algoritmos
+function Prioridade(processos) {
+    return executarPrioridade(processos);
+}
+
+// Adicionar esta função para compatibilidade com o scriptGra.js
+function PRIORIDADE(processos) {
+    return executarPrioridade(processos);
+}
+
 // Exportar funções
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         executarPrioridade,
         escalonamentoPrioridade,
-        validarParametrosPrioridade
+        validarParametrosPrioridade,
+        Prioridade
     };
 }

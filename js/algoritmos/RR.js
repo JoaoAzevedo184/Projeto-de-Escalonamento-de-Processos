@@ -242,6 +242,10 @@ function executarRR(processos, quantum) {
     }
 }
 
+function RR(processos, quantum) {
+    return executarRR(processos, quantum);
+}
+
 // Exportar funções
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {

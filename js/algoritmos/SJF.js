@@ -195,11 +195,15 @@ function executarSJF(processos) {
     }
 }
 
+// Função wrapper para manter a consistência com os outros algoritmos
+function SJF(processos) {
+    return executarSJF(processos);
+}
+
 // Exportar funções
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         executarSJF,
-        shortestJobFirst,
-        validarParametrosSJF
+        SJF
     };
 }

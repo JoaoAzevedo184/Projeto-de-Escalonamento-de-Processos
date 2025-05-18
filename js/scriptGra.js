@@ -1,5 +1,40 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se existem dados de processos no localStorage
+// Variável global para controlar a pausa da animação
+let animacaoPausada = false;
+let velocidadeAnimacao = 1000; // Tempo em ms entre cada bloco
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Carregar dados do localStorage
+    const dados = carregarDados();
+    if (!dados) return;
+    
+    // Configurar botões
+    configurarBotoes();
+    
+    try {
+        // Executar algoritmo e renderizar resultados
+        const resultadoExecucao = executarAlgoritmo(dados.processos, dados.algoritmo, dados.quantum);
+        if (!resultadoExecucao) {
+            throw new Error(`O algoritmo ${dados.algoritmo} não retornou um resultado válido`);
+        }
+        
+        // Normalizar e processar o resultado
+        const resultadoNormalizado = normalizarResultado(resultadoExecucao);
+        
+        // Renderizar visualização
+        prepararGrafico(resultadoNormalizado);
+        iniciarAnimacao(resultadoNormalizado);
+        exibirMetricas(resultadoNormalizado);
+    } catch (error) {
+        console.error("Erro ao executar o algoritmo:", error);
+        alert(`Ocorreu um erro ao executar o algoritmo: ${error.message}`);
+    }
+});
+
+/**
+ * Carrega os dados do localStorage
+ * @returns {Object|null} Dados carregados ou null se não existirem
+ */
+function carregarDados() {
     const processosStr = localStorage.getItem('processos');
     const algoritmo = localStorage.getItem('algoritmo');
     const quantum = localStorage.getItem('quantum');
@@ -7,179 +42,353 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!processosStr || !algoritmo) {
         alert('Nenhum dado de simulação encontrado. Voltando para a página inicial.');
         window.location.href = '../index.html';
-        return;
+        return null;
     }
     
-    const processos = JSON.parse(processosStr);
-    
-    // Executar o algoritmo selecionado
-    let resultadoExecucao;
-    
-    try {
-        switch(algoritmo) {
-            case 'FCFS':
-                resultadoExecucao = executarFCFS(processos);
-                break;
-            case 'SJF':
-                resultadoExecucao = executarSJF(processos);
-                break;
-            case 'SRTF':
-                resultadoExecucao = executarSRTF(processos);
-                break;
-            case 'RR':
-                resultadoExecucao = executarRR(processos, parseInt(quantum));
-                break;
-            case 'PRIORIDADE':
-                resultadoExecucao = executarPrioridade(processos);
-                break;
-            case 'MULTIPROCESSO':
-                // Implementar lógica para multiprocessamento
-                resultadoExecucao = gerarResultadoExemplo(processos, algoritmo);
-                break;
-            default:
-                resultadoExecucao = gerarResultadoExemplo(processos, algoritmo);
-        }
-        
-        // Renderizar o gráfico de Gantt com o resultado da execução
-        renderizarGrafico(resultadoExecucao);
-        
-        // Calcular e exibir métricas
-        exibirMetricas(resultadoExecucao);
-    } catch (error) {
-        console.error("Erro ao executar o algoritmo:", error);
-        alert("Ocorreu um erro ao executar o algoritmo: " + error.message);
-    }
-    
-    // Adicionar evento aos botões
-    document.getElementById('btn-voltar').addEventListener('click', function() {
+    return {
+        processos: JSON.parse(processosStr),
+        algoritmo,
+        quantum: quantum ? parseInt(quantum) : undefined
+    };
+}
+
+/**
+ * Configura os botões da interface
+ */
+function configurarBotoes() {
+    // Botão voltar
+    document.getElementById('btn-voltar')?.addEventListener('click', () => {
         window.location.href = '../index.html';
     });
     
-    document.getElementById('btn-nova-simulacao').addEventListener('click', function() {
+    // Botão nova simulação
+    document.getElementById('btn-nova-simulacao')?.addEventListener('click', () => {
         localStorage.removeItem('processos');
         localStorage.removeItem('algoritmo');
         localStorage.removeItem('quantum');
         window.location.href = '../index.html';
     });
-});
+    
+    // Botão pausar (se existir)
+    const btnPausar = document.getElementById('btn-pausar');
+    if (btnPausar) {
+        btnPausar.addEventListener('click', () => {
+            animacaoPausada = !animacaoPausada;
+            btnPausar.textContent = animacaoPausada ? 'Continuar' : 'Pausar';
+        });
+    }
+    
+    // Botão velocidade (se existir)
+    const btnVelocidade = document.getElementById('btn-velocidade');
+    if (btnVelocidade) {
+        btnVelocidade.addEventListener('click', () => {
+            if (velocidadeAnimacao === 1000) {
+                velocidadeAnimacao = 500;
+                btnVelocidade.textContent = 'Velocidade: Rápida';
+            } else if (velocidadeAnimacao === 500) {
+                velocidadeAnimacao = 2000;
+                btnVelocidade.textContent = 'Velocidade: Lenta';
+            } else {
+                velocidadeAnimacao = 1000;
+                btnVelocidade.textContent = 'Velocidade: Normal';
+            }
+        });
+    }
+}
 
-// Função para renderizar o gráfico de Gantt
-function renderizarGrafico(resultado) {
+/**
+ * Executa o algoritmo selecionado
+ * @param {Array} processos Lista de processos
+ * @param {string} algoritmo Nome do algoritmo
+ * @param {number} quantum Quantum para Round Robin
+ * @returns {Object} Resultado da execução
+ */
+function executarAlgoritmo(processos, algoritmo, quantum) {
+    console.log(`Executando algoritmo: ${algoritmo}`);
+    
+    // Verificar se as funções dos algoritmos estão definidas
+    if (typeof window[algoritmo] !== 'function') {
+        console.error(`Algoritmo ${algoritmo} não está definido`);
+        throw new Error(`Algoritmo ${algoritmo} não está definido. Verifique se o script foi carregado.`);
+    }
+    
+    let resultado;
+    
+    switch(algoritmo) {
+        case 'FCFS':
+            resultado = FCFS(processos);
+            break;
+        case 'SJF':
+            resultado = SJF(processos);
+            break;
+        case 'SRTF':
+            resultado = SRTF(processos);
+            break;
+        case 'RR':
+            resultado = RR(processos, quantum);
+            break;
+        case 'PRIORIDADE':
+            resultado = Prioridade(processos);
+            break;
+        case 'LOTERIA':
+            resultado = LOTERIA(processos, quantum);
+            break;
+        default:
+            throw new Error(`Algoritmo não implementado: ${algoritmo}`);
+    
+    }
+    
+    console.log("Resultado da execução:", resultado);
+    return resultado;
+}
+
+/**
+ * Normaliza o resultado para o formato esperado
+ * @param {Object} resultado Resultado da execução do algoritmo
+ * @returns {Object} Resultado normalizado
+ */
+function normalizarResultado(resultado) {
+    // Se o resultado já estiver no formato esperado, retorná-lo diretamente
+    if (resultado?.processos && resultado?.ganttChart && resultado?.metricas) {
+        return resultado;
+    }
+    
+    // Criar um objeto com a estrutura esperada
+    const resultadoNormalizado = {
+        processos: [],
+        ganttChart: [],
+        metricas: {
+            tempoEsperaMedio: 0,
+            tempoTurnaroundMedio: 0
+        }
+    };
+    
+    // Extrair processos
+    if (Array.isArray(resultado?.processos)) {
+        resultadoNormalizado.processos = resultado.processos;
+    } else if (Array.isArray(resultado)) {
+        resultadoNormalizado.processos = resultado;
+    }
+    
+    // Extrair gráfico de Gantt
+    if (Array.isArray(resultado?.ganttChart)) {
+        resultadoNormalizado.ganttChart = resultado.ganttChart;
+    } else if (resultado?.execucao && Array.isArray(resultado.execucao)) {
+        resultadoNormalizado.ganttChart = resultado.execucao;
+    }
+    
+    // Extrair métricas
+    if (resultado?.metricas) {
+        resultadoNormalizado.metricas = resultado.metricas;
+    }
+    
+    // Verificar e corrigir dados ausentes
+    if (resultadoNormalizado.processos.length === 0 && resultadoNormalizado.ganttChart.length > 0) {
+        const processosUnicos = [...new Set(resultadoNormalizado.ganttChart.map(b => b.processo))];
+        resultadoNormalizado.processos = processosUnicos.map(nome => ({ nome }));
+    }
+    
+    return resultadoNormalizado;
+}
+
+/**
+ * Prepara o gráfico para animação
+ * @param {Object} resultado Resultado normalizado
+ */
+function prepararGrafico(resultado) {
     const ganttChart = document.getElementById('gantt-chart');
     ganttChart.innerHTML = ''; // Limpar conteúdo anterior
     
-    // Criar linhas para cada processo
-    const processosUnicos = [...new Set(resultado.execucao
-        .filter(e => e.tipo === 'processo')
-        .map(e => e.processo))];
+    // Extrair processos únicos
+    const processosUnicos = extrairProcessosUnicos(resultado);
     
-    // Determinar o tempo total para escala
-    const tempoTotal = resultado.tempoTotal;
+    // Determinar o tempo total
+    const tempoTotal = calcularTempoTotal(resultado);
     
     // Criar indicadores de tempo
+    criarIndicadoresTempo(tempoTotal);
+    
+    // Criar linhas para cada processo
+    processosUnicos.forEach(processoNome => {
+        criarLinhaProcesso(processoNome, ganttChart);
+    });
+}
+
+/**
+ * Extrai a lista de processos únicos
+ * @param {Object} resultado Resultado normalizado
+ * @returns {Array} Lista de nomes de processos únicos
+ */
+function extrairProcessosUnicos(resultado) {
+    // Verificar se os processos têm a propriedade 'nome' ou 'id'
+    if (resultado.processos.length > 0) {
+        if (resultado.processos[0].nome) {
+            return [...new Set(resultado.processos.map(p => p.nome))];
+        } else if (resultado.processos[0].id) {
+            return [...new Set(resultado.processos.map(p => p.id))];
+        }
+    }
+    
+    // Extrair processos únicos do gráfico de Gantt
+    return [...new Set(resultado.ganttChart.map(b => b.processo))];
+}
+
+/**
+ * Calcula o tempo total da simulação
+ * @param {Object} resultado Resultado normalizado
+ * @returns {number} Tempo total
+ */
+function calcularTempoTotal(resultado) {
+    // Verificar se os processos têm a propriedade 'conclusao'
+    if (resultado.processos.length > 0 && resultado.processos[0].conclusao) {
+        return Math.max(...resultado.processos.map(p => p.conclusao));
+    }
+    
+    // Usar o tempo final do último bloco do gráfico de Gantt
+    return Math.max(...resultado.ganttChart.map(b => b.fim));
+}
+
+/**
+ * Cria os indicadores de tempo no gráfico
+ * @param {number} tempoTotal Tempo total da simulação
+ */
+function criarIndicadoresTempo(tempoTotal) {
     const timeIndicators = document.getElementById('time-indicators');
     timeIndicators.innerHTML = '';
     
+    // Determinar o intervalo ideal para as marcações
+    const intervalo = Math.max(1, Math.ceil(tempoTotal / 20));
+    
     // Adicionar marcações de tempo
-    for (let i = 0; i <= tempoTotal; i += Math.max(1, Math.floor(tempoTotal / 20))) {
+    for (let i = 0; i <= tempoTotal; i += intervalo) {
         const timeMarker = document.createElement('div');
         timeMarker.className = 'time-marker';
         timeMarker.style.left = `${(i / tempoTotal) * 100}%`;
         timeMarker.textContent = i;
         timeIndicators.appendChild(timeMarker);
     }
-    
-    // Criar linha para cada processo
-    processosUnicos.forEach(processoId => {
-        const processRow = document.createElement('div');
-        processRow.className = 'process-row';
-        
-        // Adicionar label do processo
-        const processLabel = document.createElement('div');
-        processLabel.className = 'process-label';
-        processLabel.textContent = processoId;
-        processRow.appendChild(processLabel);
-        
-        // Criar timeline para este processo
-        const timeline = document.createElement('div');
-        timeline.className = 'timeline';
-        processRow.appendChild(timeline);
-        
-        // Adicionar blocos de execução para este processo
-        resultado.execucao
-            .filter(e => e.tipo === 'processo' && e.processo === processoId)
-            .forEach(execucao => {
-                const block = document.createElement('div');
-                block.className = 'process-block';
-                block.style.left = `${(execucao.inicio / tempoTotal) * 100}%`;
-                block.style.width = `${((execucao.fim - execucao.inicio) / tempoTotal) * 100}%`;
-                block.title = `${processoId}: ${execucao.inicio} - ${execucao.fim}`;
-                block.textContent = execucao.fim - execucao.inicio;
-                timeline.appendChild(block);
-            });
-        
-        ganttChart.appendChild(processRow);
-    });
 }
 
-// Função para exibir métricas
-function exibirMetricas(resultado) {
-    document.getElementById('tempo-espera').textContent = 
-        resultado.metricas.tempoMedioEspera.toFixed(2);
+/**
+ * Cria uma linha para um processo no gráfico
+ * @param {string} processoNome Nome do processo
+ * @param {HTMLElement} ganttChart Elemento do gráfico de Gantt
+ */
+function criarLinhaProcesso(processoNome, ganttChart) {
+    const processRow = document.createElement('div');
+    processRow.className = 'process-row';
+    processRow.id = `row-${processoNome}`;
     
-    document.getElementById('tempo-retorno').textContent = 
-        resultado.metricas.tempoMedioRetorno.toFixed(2);
+    // Adicionar label do processo
+    const processLabel = document.createElement('div');
+    processLabel.className = 'process-label';
+    processLabel.textContent = processoNome;
+    processRow.appendChild(processLabel);
     
-    document.getElementById('throughput').textContent = 
-        resultado.metricas.throughput.toFixed(2);
+    // Criar timeline para este processo
+    const timeline = document.createElement('div');
+    timeline.className = 'timeline';
+    timeline.id = `timeline-${processoNome}`;
+    processRow.appendChild(timeline);
     
-    document.getElementById('utilizacao-cpu').textContent = 
-        resultado.metricas.utilizacaoCPU.toFixed(2) + '%';
+    ganttChart.appendChild(processRow);
 }
 
-// Função para gerar um resultado de exemplo (caso necessário)
-function gerarResultadoExemplo(processos, algoritmo) {
-    // Implementação básica para testes
-    const resultado = {
-        algoritmo: algoritmo,
-        tempoTotal: 0,
-        execucao: [],
-        metricas: {
-            tempoEspera: [],
-            tempoRetorno: []
+/**
+ * Inicia a animação do gráfico
+ * @param {Object} resultado Resultado normalizado
+ */
+function iniciarAnimacao(resultado) {
+    const tempoTotal = calcularTempoTotal(resultado);
+    const ganttChart = [...resultado.ganttChart].sort((a, b) => a.inicio - b.inicio);
+    
+    let indiceAtual = 0;
+    
+    // Função para animar um bloco
+    function animarProximoBloco() {
+        // Verificar se a animação está pausada
+        if (animacaoPausada) {
+            setTimeout(animarProximoBloco, 500);
+            return;
         }
-    };
+        
+        if (indiceAtual >= ganttChart.length) {
+            console.log("Animação concluída!");
+            return;
+        }
+        
+        const bloco = ganttChart[indiceAtual];
+        const timeline = document.getElementById(`timeline-${bloco.processo}`);
+        
+        if (!timeline) {
+            console.error(`Timeline não encontrada para o processo ${bloco.processo}`);
+            indiceAtual++;
+            setTimeout(animarProximoBloco, velocidadeAnimacao);
+            return;
+        }
+        
+        // Criar e animar o bloco
+        criarBlocoAnimado(bloco, timeline, tempoTotal);
+        
+        // Avançar para o próximo bloco
+        indiceAtual++;
+        setTimeout(animarProximoBloco, velocidadeAnimacao);
+    }
     
-    let tempoAtual = 0;
+    // Iniciar a animação
+    animarProximoBloco();
+}
+
+/**
+ * Cria um bloco animado no gráfico
+ * @param {Object} bloco Bloco de execução
+ * @param {HTMLElement} timeline Elemento da timeline
+ * @param {number} tempoTotal Tempo total da simulação
+ */
+function criarBlocoAnimado(bloco, timeline, tempoTotal) {
+    const block = document.createElement('div');
+    block.className = 'process-block';
+    block.style.left = `${(bloco.inicio / tempoTotal) * 100}%`;
+    block.style.width = `${((bloco.fim - bloco.inicio) / tempoTotal) * 100}%`;
+    block.title = `${bloco.processo}: ${bloco.inicio} - ${bloco.fim}`;
+    block.textContent = bloco.fim - bloco.inicio;
     
-    // Para cada processo, simula uma execução aleatória
-    processos.forEach(processo => {
-        // Adiciona um tempo de espera entre 0 e 5
-        const espera = Math.floor(Math.random() * 5);
-        tempoAtual += espera;
-        
-        // Adiciona a execução ao resultado
-        resultado.execucao.push({
-            processo: processo.id,
-            inicio: tempoAtual,
-            fim: tempoAtual + processo.duracao
-        });
-        
-        // Avança o tempo
-        tempoAtual += processo.duracao;
-        
-        // Calcula métricas
-        resultado.metricas.tempoEspera.push({
-            processo: processo.id,
-            valor: tempoAtual - processo.chegada - processo.duracao
-        });
-        
-        resultado.metricas.tempoRetorno.push({
-            processo: processo.id,
-            valor: tempoAtual - processo.chegada
-        });
-    });
+    // Adicionar efeito de animação
+    block.style.opacity = '0';
+    timeline.appendChild(block);
     
-    resultado.tempoTotal = tempoAtual;
-    return resultado;
+    // Animar o aparecimento do bloco
+    setTimeout(() => {
+        block.style.transition = 'opacity 0.5s ease-in-out';
+        block.style.opacity = '1';
+    }, 100);
+}
+
+/**
+ * Exibe as métricas de desempenho
+ * @param {Object} resultado Resultado normalizado
+ */
+function exibirMetricas(resultado) {
+    if (!resultado.metricas) {
+        console.warn("Métricas não encontradas no resultado");
+        return;
+    }
+    
+    // Tempo médio de espera
+    const tempoEspera = resultado.metricas.tempoEsperaMedio ?? resultado.metricas.tempoMedioEspera ?? 0;
+    document.getElementById('tempo-espera').textContent = tempoEspera.toFixed(2);
+    
+    // Tempo médio de retorno
+    const tempoRetorno = resultado.metricas.tempoTurnaroundMedio ?? resultado.metricas.tempoMedioRetorno ?? 0;
+    document.getElementById('tempo-retorno').textContent = tempoRetorno.toFixed(2);
+    
+    // Calcular throughput e utilização da CPU
+    const tempoTotal = calcularTempoTotal(resultado);
+    const throughput = resultado.processos.length / tempoTotal;
+    document.getElementById('throughput').textContent = throughput.toFixed(2);
+    
+    const tempoExecucao = resultado.ganttChart.reduce((total, bloco) => 
+        total + (bloco.fim - bloco.inicio), 0);
+    const utilizacaoCPU = (tempoExecucao / tempoTotal) * 100;
+    document.getElementById('utilizacao-cpu').textContent = utilizacaoCPU.toFixed(2) + '%';
 }

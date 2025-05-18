@@ -176,11 +176,17 @@ function executarFCFS(processos) {
     }
 }
 
+// Função wrapper para manter a consistência com os outros algoritmos
+function FCFS(processos) {
+    return executarFCFS(processos);
+}
+
 // Exportar funções
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         executarFCFS,
         firstComeFirstServe,
-        validarParametrosFCFS
+        validarParametrosFCFS,
+        FCFS
     };
 }
