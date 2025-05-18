@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Projeto</title>
+</head>
+<body>
+    <div>
+        <header>
+            <h1>Simulador de Escalonamento de Processos</h1>
+        </header>
+
+        <!-- Seção 1 - Algoritmos -->
+        <section>
+            <h2>1. Selecione o Tipo de Escalonamento:</h2>
+            <div>
+                <label>
+                    <input type="radio" name="algoritmo" value="RR"> Round Robin
+                </label>
+                <label>
+                    <input type="radio" name="algoritmo" value="FCFS"> First Come First Serve
+                </label>
+                <label>
+                    <input type="radio" name="algoritmo" value="SJF"> Shortest Job First
+                </label>
+                <label>
+                    <input type="radio" name="algoritmo" value="SRTF"> Shortest Remaining Time First
+                </label>
+                <label>
+                    <input type="radio" name="algoritmo" value="PRIORIDADE"> Prioridade
+                </label>
+                <label>
+                    <input type="radio" name="algoritmo" value="MULTIPROCESSO"> Multiprocessamento com Prioridade
+                </label>
+            </div>
+        </section>
+
+        <!-- Seção 2 - Quantidade de Processos -->
+        <section>
+            <h2>2. Selecione a quantidade de Processos:</h2>
+            <label for="QuantidadeProcessos">Quantidade:</label>
+            <input type="number" id="QuantidadeProcessos" name="QuantidadeProcessos" min="1" max="10">
+        </section>
+
+        <!-- Seção 3 - Tempo de Chegada -->
+        <section>
+            <h2>3. Selecione o Tempo de Chegada:</h2>
+            <div>
+                <label>
+                    <input type="radio" name="ArrivelTime" value="aleatorio"> Aleatório
+                </label>
+                <label>
+                    <input type="radio" name="ArrivelTime" value="manual"> Manual
+                </label>
+            </div>
+        </section>
+
+        <!-- Seção 4 - Duração -->
+        <section>
+            <h2>4. Duração de cada processo:</h2>
+            <div>
+                <label>
+                    <input type="radio" name="DurationTime" value="aleatorio" checked> Aleatório
+                </label>
+                <label>
+                    <input type="radio" name="DurationTime" value="manual"> Manual
+                </label>
+            </div>
+        </section>
+
+        <button id="btnGerarProcessos">Gerar Processos</button>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>

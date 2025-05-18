@@ -1,0 +1,103 @@
+/* Define o plano de fundo com a imagem */
+body {
+    margin: 0;
+    padding: 0;
+    background: url('../assets/img/imgFundo.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    color: #fff;
+}
+
+/* Centraliza o conteúdo e aplica espaçamento */
+div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Efeito de vidro nas seções */
+section {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    width: 80%;
+    max-width: 500px;
+    height: auto;
+    min-height: 100px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Estilo para o container de labels */
+section div {
+    width: 100%;
+    min-height: auto;
+    padding: 10px;
+}
+
+/* Estiliza os botões */
+button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+    align-self: center;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Estiliza os inputs */
+input[type="radio"], input[type="number"] {
+    margin-right: 10px;
+}
+
+/* Ajuste dos labels */
+label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+}
+/* Ajuste para opções lado a lado nas seções 3 e 4 */
+section:nth-child(4) div, 
+section:nth-child(5) div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Estilo para a seção de explicação */
+.explicacao-algoritmo {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    width: 100%;
+    display: none; /* Inicialmente oculto */
+}
+
+.explicacao-algoritmo.active {
+    display: block;
+}
+
+/* Ajuste para o texto da explicação */
+.explicacao-algoritmo p {
+    margin: 0;
+    line-height: 1.5;
+    text-align: justify;
+}
