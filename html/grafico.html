@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,12 +11,12 @@
         <h1>Visualização do Escalonamento de Processos</h1>
         
         <div class="grafico-container">
-            <div class="time-indicators" id="time-indicators">
-                <!-- Indicadores de tempo serão gerados pelo JavaScript -->
-            </div>
             
             <div class="gantt-chart" id="gantt-chart">
                 <!-- As linhas de processo serão geradas pelo JavaScript -->
+            </div>
+            <div class="time-indicators" id="time-indicators">
+                <!-- Indicadores de tempo serão gerados pelo JavaScript -->
             </div>
             
             <div class="legend">
@@ -58,6 +58,7 @@
         
         <div class="controls">
             <button id="btn-voltar">Voltar</button>
+            <button id="btn-pausar">Pausar</button>
             <button id="btn-nova-simulacao">Nova Simulação</button>
         </div>
     </div>
@@ -67,6 +68,7 @@
     <script src="../js/algoritmos/SRTF.js"></script>
     <script src="../js/algoritmos/RR.js"></script>
     <script src="../js/algoritmos/Prioridade.js"></script>
+    <script src="../js/algoritmos/Loteria.js"></script>
     
     <!-- Script do gráfico -->
     <script src="../js/scriptGra.js"></script>
