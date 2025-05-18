@@ -197,41 +197,77 @@ function criarFormularioProcessos(qtdProcessos, algoritmo, tempoChegada, tempoDu
     });
 
     // Adicionar evento ao botão simular
-    document.getElementById('btnSimular').addEventListener('click', function() {
-        // Coletar os dados dos processos
-        const processos = [];
-        for (let i = 0; i < qtdProcessos; i++) {
-            const processo = {
-                id: document.getElementById(`processo${i+1}_id`).value,
-                chegada: parseInt(document.getElementById(`processo${i+1}_chegada`).value),
-                duracao: parseInt(document.getElementById(`processo${i+1}_duracao`).value)
-            };
-
-            // Adicionar prioridade se aplicável
-            if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
-                processo.prioridade = parseInt(document.getElementById(`processo${i+1}_prioridade`).value);
+    // Adicionar esta função ao script.js
+    function validarProcessos(processos, algoritmo) {
+        // Verificar se há processos
+        if (!processos || processos.length === 0) {
+            return { valido: false, mensagem: 'Nenhum processo foi definido.' };
+        }
+        
+        // Verificar campos obrigatórios
+        for (let i = 0; i < processos.length; i++) {
+            const p = processos[i];
+            
+            if (p.chegada === undefined || p.duracao === undefined) {
+                return { 
+                    valido: false, 
+                    mensagem: `Processo ${p.id} tem campos incompletos.` 
+                };
             }
+            
+            if (p.duracao <= 0) {
+                return { 
+                    valido: false, 
+                    mensagem: `Processo ${p.id} tem duração inválida. A duração deve ser maior que zero.` 
+                };
+            }
+            
+            if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
+                if (p.prioridade === undefined) {
+                    return { 
+                        valido: false, 
+                        mensagem: `Processo ${p.id} não tem prioridade definida.` 
+                    };
+                }
+            }
+        }
+        
+        return { valido: true };
+    }
+document.getElementById('btnSimular').addEventListener('click', function() {
+    // Coletar os dados dos processos
+    const processos = [];
+    for (let i = 0; i < qtdProcessos; i++) {
+        const processo = {
+            id: document.getElementById(`processo${i+1}_id`).value,
+            chegada: parseInt(document.getElementById(`processo${i+1}_chegada`).value),
+            duracao: parseInt(document.getElementById(`processo${i+1}_duracao`).value)
+        };
 
-            processos.push(processo);
+        // Adicionar prioridade se aplicável
+        if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
+            processo.prioridade = parseInt(document.getElementById(`processo${i+1}_prioridade`).value);
         }
 
-        // Obter quantum se for Round Robin
-        let quantum;
-        if (algoritmo === 'RR') {
-            quantum = parseInt(document.getElementById('quantum').value);
-        }
+        processos.push(processo);
+    }
 
-        // Salvar os dados e direcionar para a visualização
-        localStorage.setItem('processos', JSON.stringify(processos));
-        localStorage.setItem('algoritmo', algoritmo);
-        if (quantum) {
-            localStorage.setItem('quantum', quantum);
-        }
+    // Obter quantum se for Round Robin
+    let quantum;
+    if (algoritmo === 'RR') {
+        quantum = parseInt(document.getElementById('quantum').value);
+    }
 
-        // Aqui você pode redirecionar para a página de visualização
-        // ou criar a visualização dinamicamente
-        criarVisualizacaoExecucao(processos, algoritmo, quantum);
-    });
+    // Salvar os dados no localStorage
+    localStorage.setItem('processos', JSON.stringify(processos));
+    localStorage.setItem('algoritmo', algoritmo);
+    if (quantum) {
+        localStorage.setItem('quantum', quantum);
+    }
+
+    // Redirecionar para a página de visualização
+    window.location.href = 'html/grafico.html';
+});
 }
 
 /**
