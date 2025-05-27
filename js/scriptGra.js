@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         prepararGrafico(resultadoNormalizado);
         iniciarAnimacao(resultadoNormalizado);
         exibirMetricas(resultadoNormalizado);
+        exibirInformacoes(dados, resultadoNormalizado);
     } catch (error) {
         console.error("Erro ao executar o algoritmo:", error);
         alert(`Ocorreu um erro ao executar o algoritmo: ${error.message}`);
@@ -69,29 +70,12 @@ function configurarBotoes() {
         window.location.href = '../index.html';
     });
     
-    // Botão pausar (se existir)
+    // Botão pausar 
     const btnPausar = document.getElementById('btn-pausar');
     if (btnPausar) {
         btnPausar.addEventListener('click', () => {
             animacaoPausada = !animacaoPausada;
             btnPausar.textContent = animacaoPausada ? 'Continuar' : 'Pausar';
-        });
-    }
-    
-    // Botão velocidade (se existir)
-    const btnVelocidade = document.getElementById('btn-velocidade');
-    if (btnVelocidade) {
-        btnVelocidade.addEventListener('click', () => {
-            if (velocidadeAnimacao === 1000) {
-                velocidadeAnimacao = 500;
-                btnVelocidade.textContent = 'Velocidade: Rápida';
-            } else if (velocidadeAnimacao === 500) {
-                velocidadeAnimacao = 2000;
-                btnVelocidade.textContent = 'Velocidade: Lenta';
-            } else {
-                velocidadeAnimacao = 1000;
-                btnVelocidade.textContent = 'Velocidade: Normal';
-            }
         });
     }
 }
@@ -382,13 +366,58 @@ function exibirMetricas(resultado) {
     const tempoRetorno = resultado.metricas.tempoTurnaroundMedio ?? resultado.metricas.tempoMedioRetorno ?? 0;
     document.getElementById('tempo-retorno').textContent = tempoRetorno.toFixed(2);
     
-    // Calcular throughput e utilização da CPU
+    // Calcular throughput
     const tempoTotal = calcularTempoTotal(resultado);
     const throughput = resultado.processos.length / tempoTotal;
     document.getElementById('throughput').textContent = throughput.toFixed(2);
     
-    const tempoExecucao = resultado.ganttChart.reduce((total, bloco) => 
-        total + (bloco.fim - bloco.inicio), 0);
-    const utilizacaoCPU = (tempoExecucao / tempoTotal) * 100;
-    document.getElementById('utilizacao-cpu').textContent = utilizacaoCPU.toFixed(2) + '%';
+}
+
+/**
+ * Exibe as informações dos processos e do algoritmo selecionado
+ * @param {Object} dados Dados carregados do localStorage
+ * @param {Object} resultado Resultado normalizado
+ */
+function exibirInformacoes(dados, resultado) {
+    // Exibir nome do algoritmo
+    document.getElementById('algoritmo-nome').textContent = dados.algoritmo;
+    
+    // Exibir quantum (se aplicável)
+    const quantumCard = document.getElementById('quantum-card');
+    if (dados.algoritmo === 'RR' || dados.algoritmo === 'LOTERIA') {
+        document.getElementById('quantum-valor').textContent = dados.quantum;
+        quantumCard.style.display = 'block';
+    } else {
+        quantumCard.style.display = 'none';
+    }
+    
+    // Exibir informações dos processos
+    const tabelaProcessos = document.getElementById('processos-tabela').getElementsByTagName('tbody')[0];
+    tabelaProcessos.innerHTML = '';
+    
+    dados.processos.forEach(processo => {
+        const row = document.createElement('tr');
+        
+        // Coluna do nome do processo
+        const tdNome = document.createElement('td');
+        tdNome.textContent = processo.nome || processo.id;
+        row.appendChild(tdNome);
+        
+        // Coluna do tempo de chegada
+        const tdChegada = document.createElement('td');
+        tdChegada.textContent = processo.chegada !== undefined ? processo.chegada : 'N/A';
+        row.appendChild(tdChegada);
+        
+        // Coluna do tempo de execução
+        const tdExecucao = document.createElement('td');
+        tdExecucao.textContent = processo.duracao || processo.tempoExecucao || 'N/A';
+        row.appendChild(tdExecucao);
+        
+        // Coluna da prioridade
+        const tdPrioridade = document.createElement('td');
+        tdPrioridade.textContent = processo.prioridade !== undefined ? processo.prioridade : 'N/A';
+        row.appendChild(tdPrioridade);
+        
+        tabelaProcessos.appendChild(row);
+    });
 }
