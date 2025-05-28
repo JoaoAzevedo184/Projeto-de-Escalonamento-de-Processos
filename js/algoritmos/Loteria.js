@@ -270,7 +270,7 @@ function executarLoteria(processos, quantum) {
 }
 
 // Função wrapper para manter a consistência com os outros algoritmos
-function LOTERIA(processos, quantum) {
+function Loteria(processos, quantum) {
     return executarLoteria(processos, quantum);
 }
 
@@ -280,6 +280,6 @@ if (typeof module !== 'undefined' && module.exports) {
         executarLoteria,
         escalonamentoLoteria,
         validarParametrosLoteria,
-        LOTERIA
+        Loteria
     };
 }

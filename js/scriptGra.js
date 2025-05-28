@@ -114,8 +114,8 @@ function executarAlgoritmo(processos, algoritmo, quantum) {
         case 'PRIORIDADE':
             resultado = Prioridade(processos);
             break;
-        case 'LOTERIA':
-            resultado = LOTERIA(processos, quantum);
+        case 'Loteria':
+            resultado = Loteria(processos, quantum);
             break;
         default:
             throw new Error(`Algoritmo não implementado: ${algoritmo}`);

@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         'PRIORIDADE': 'O escalonamento por Prioridade executa os processos de acordo com um valor de prioridade atribuído. Quanto menor o número, maior a prioridade. Pode usar preempção quando um processo de maior prioridade chega.',
         
-        'MULTIPROCESSO': 'O Multiprocessamento com Prioridade permite a execução simultânea de processos em múltiplos processadores, considerando a prioridade de cada processo na alocação dos recursos.'
+        'Loteria': 'O escalonamento por Loteria atribui bilhetes a cada processo, e um bilhete é sorteado para determinar qual processo será executado. Isso permite uma forma de justiça e aleatoriedade no escalonamento.'
     };
 
     // Exibir explicação ao selecionar um algoritmo
@@ -97,7 +97,6 @@ function criarFormularioProcessos(qtdProcessos, algoritmo, tempoChegada, tempoDu
     const section = document.createElement('section');
     section.innerHTML = `<h2>Configuração dos Processos</h2>`;
     
-    // Criar formulário para cada processo
     const formContainer = document.createElement('div');
     formContainer.className = 'form-container';
     
@@ -149,8 +148,8 @@ function criarFormularioProcessos(qtdProcessos, algoritmo, tempoChegada, tempoDu
             `;
         }
 
-        // Adicionar campo de prioridade se o algoritmo for PRIORIDADE ou MULTIPROCESSO
-        if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
+        // Adicionar campo de prioridade se o algoritmo for PRIORIDADE
+        if (algoritmo === 'PRIORIDADE') {
             const prioridadeAleatoria = Math.floor(Math.random() * 5) + 1;
             processoForm.innerHTML += `
                 <div class="form-row">
@@ -160,18 +159,30 @@ function criarFormularioProcessos(qtdProcessos, algoritmo, tempoChegada, tempoDu
                 </div>
             `;
         }
+        
+        // Adicionar campo de bilhetes se o algoritmo for LOTERIA
+        if (algoritmo === 'LOTERIA') {
+            const bilhetesAleatorios = Math.floor(Math.random() * 5) + 1;
+            processoForm.innerHTML += `
+                <div class="form-row">
+                    <label for="processo${i+1}_bilhetes">Bilhetes:</label>
+                    <input type="number" id="processo${i+1}_bilhetes" min="1" value="${bilhetesAleatorios}" ${tempoDuracao === 'aleatorio' ? 'readonly' : ''}>
+                    <span class="help-text">(Quanto mais bilhetes, maior a chance de ser selecionado)</span>
+                </div>
+            `;
+        }
 
         formContainer.appendChild(processoForm);
     }
 
     section.appendChild(formContainer);
 
-    // Adicionar campo quantum se for Round Robin
-    if (algoritmo === 'RR') {
+    // Adicionar campo quantum se for Round Robin ou Loteria
+    if (algoritmo === 'RR' || algoritmo === 'LOTERIA') {
         const quantumDiv = document.createElement('div');
         quantumDiv.className = 'quantum-section';
         quantumDiv.innerHTML = `
-            <h3>Configuração do Round Robin</h3>
+            <h3>Configuração do ${algoritmo === 'RR' ? 'Round Robin' : 'Escalonamento por Loteria'}</h3>
             <div class="form-row">
                 <label for="quantum">Quantum:</label>
                 <input type="number" id="quantum" min="1" value="2" required>
@@ -222,7 +233,7 @@ function criarFormularioProcessos(qtdProcessos, algoritmo, tempoChegada, tempoDu
                 };
             }
             
-            if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
+            if (algoritmo === 'PRIORIDADE') {
                 if (p.prioridade === undefined) {
                     return { 
                         valido: false, 
@@ -230,44 +241,58 @@ function criarFormularioProcessos(qtdProcessos, algoritmo, tempoChegada, tempoDu
                     };
                 }
             }
+            
+            if (algoritmo === 'LOTERIA') {
+                if (p.bilhetes === undefined) {
+                    return { 
+                        valido: false, 
+                        mensagem: `Processo ${p.id} não tem bilhetes definidos.` 
+                    };
+                }
+            }
         }
         
         return { valido: true };
     }
-document.getElementById('btnSimular').addEventListener('click', function() {
-    // Coletar os dados dos processos
-    const processos = [];
-    for (let i = 0; i < qtdProcessos; i++) {
-        const processo = {
-            id: document.getElementById(`processo${i+1}_id`).value,
-            chegada: parseInt(document.getElementById(`processo${i+1}_chegada`).value),
-            duracao: parseInt(document.getElementById(`processo${i+1}_duracao`).value)
-        };
+    document.getElementById('btnSimular').addEventListener('click', function() {
+        // Coletar os dados dos processos
+        const processos = [];
+        for (let i = 0; i < qtdProcessos; i++) {
+            const processo = {
+                id: document.getElementById(`processo${i+1}_id`).value,
+                chegada: parseInt(document.getElementById(`processo${i+1}_chegada`).value),
+                duracao: parseInt(document.getElementById(`processo${i+1}_duracao`).value)
+            };
 
-        // Adicionar prioridade se aplicável
-        if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
-            processo.prioridade = parseInt(document.getElementById(`processo${i+1}_prioridade`).value);
+            // Adicionar prioridade se aplicável
+            if (algoritmo === 'PRIORIDADE') {
+                processo.prioridade = parseInt(document.getElementById(`processo${i+1}_prioridade`).value);
+            }
+            
+            // Adicionar bilhetes se aplicável
+            if (algoritmo === 'LOTERIA') {
+                processo.bilhetes = parseInt(document.getElementById(`processo${i+1}_bilhetes`).value);
+            }
+
+            processos.push(processo);
         }
 
-        processos.push(processo);
-    }
+        // Obter quantum se for Round Robin ou Loteria
+        let quantum;
+        if (algoritmo === 'RR' || algoritmo === 'LOTERIA') {
+            quantum = parseInt(document.getElementById('quantum').value);
+        }
 
-    // Obter quantum se for Round Robin
-    let quantum;
-    if (algoritmo === 'RR') {
-        quantum = parseInt(document.getElementById('quantum').value);
-    }
+        // Salvar os dados no localStorage
+        localStorage.setItem('processos', JSON.stringify(processos));
+        localStorage.setItem('algoritmo', algoritmo);
+        if (quantum) {
+            localStorage.setItem('quantum', quantum);
+        }
 
-    // Salvar os dados no localStorage
-    localStorage.setItem('processos', JSON.stringify(processos));
-    localStorage.setItem('algoritmo', algoritmo);
-    if (quantum) {
-        localStorage.setItem('quantum', quantum);
-    }
-
-    // Redirecionar para a página de visualização
-    window.location.href = 'html/grafico.html';
-});
+        // Redirecionar para a página de visualização
+        window.location.href = 'html/grafico.html';
+    });
 }
 
 /**
@@ -287,7 +312,7 @@ function criarVisualizacaoExecucao(processos, algoritmo, quantum) {
         <h2>Simulação de Execução - ${getAlgoritmoNome(algoritmo)}</h2>
         <div class="info-container">
             <p>Total de Processos: ${processos.length}</p>
-            ${algoritmo === 'RR' ? `<p>Quantum: ${quantum}</p>` : ''}
+            ${(algoritmo === 'RR' || algoritmo === 'LOTERIA') ? `<p>Quantum: ${quantum}</p>` : ''}
         </div>
     `;
 
@@ -302,7 +327,8 @@ function criarVisualizacaoExecucao(processos, algoritmo, quantum) {
                     <th>ID</th>
                     <th>Chegada</th>
                     <th>Duração</th>
-                    ${algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO' ? '<th>Prioridade</th>' : ''}
+                    ${algoritmo === 'PRIORIDADE' ? '<th>Prioridade</th>' : ''}
+                    ${algoritmo === 'LOTERIA' ? '<th>Bilhetes</th>' : ''}
                 </tr>
             </thead>
             <tbody>
@@ -311,7 +337,8 @@ function criarVisualizacaoExecucao(processos, algoritmo, quantum) {
                         <td>${p.id}</td>
                         <td>${p.chegada}</td>
                         <td>${p.duracao}</td>
-                        ${algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO' ? `<td>${p.prioridade}</td>` : ''}
+                        ${algoritmo === 'PRIORIDADE' ? `<td>${p.prioridade}</td>` : ''}
+                        ${algoritmo === 'LOTERIA' ? `<td>${p.bilhetes}</td>` : ''}
                     </tr>
                 `).join('')}
             </tbody>
@@ -368,12 +395,15 @@ function criarVisualizacaoExecucao(processos, algoritmo, quantum) {
             processos.forEach((p, i) => {
                 document.getElementById(`processo${i+1}_chegada`).value = p.chegada;
                 document.getElementById(`processo${i+1}_duracao`).value = p.duracao;
-                if (algoritmo === 'PRIORIDADE' || algoritmo === 'MULTIPROCESSO') {
+                if (algoritmo === 'PRIORIDADE') {
                     document.getElementById(`processo${i+1}_prioridade`).value = p.prioridade;
+                }
+                if (algoritmo === 'LOTERIA') {
+                    document.getElementById(`processo${i+1}_bilhetes`).value = p.bilhetes;
                 }
             });
             
-            if (algoritmo === 'RR') {
+            if (algoritmo === 'RR' || algoritmo === 'LOTERIA') {
                 document.getElementById('quantum').value = quantum;
             }
         }, 100);
@@ -394,7 +424,7 @@ function getAlgoritmoNome(algoritmo) {
         'SJF': 'Shortest Job First',
         'SRTF': 'Shortest Remaining Time First',
         'PRIORIDADE': 'Prioridade',
-        'MULTIPROCESSO': 'Multiprocessamento com Prioridade'
+        'LOTERIA': 'Escalonamento por Loteria'
     };
     return nomes[algoritmo] || algoritmo;
 }
