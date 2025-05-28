@@ -93,22 +93,6 @@ function firstComeFirstServe(processos) {
         });
     }
 
-    // Atualizar o tempo total da simulação
-    resultado.tempoTotal = tempoAtual;
-
-    // Calcular métricas médias
-    if (resultado.metricas.processos.length > 0) {
-        resultado.metricas.tempoMedioEspera = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoEspera, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioRetorno = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoRetorno, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioResposta = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoResposta, 0) / resultado.metricas.processos.length;
-    }
-
-    // Calcular utilização da CPU
-    resultado.metricas.utilizacaoCPU = ((tempoAtual - idleTime) / tempoAtual) * 100;
-
-    // Calcular throughput
-    resultado.metricas.throughput = processosCopia.length / tempoAtual;
-
     return resultado;
 }
 

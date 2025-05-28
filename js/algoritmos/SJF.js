@@ -9,8 +9,6 @@
 
 /**
  * Executa o algoritmo de escalonamento Shortest Job First
- * @param {Array} processos - Array de objetos de processo: {id, chegada, duracao}
- * @return {Object} Resultado da execução com timeline e métricas
  */
 function shortestJobFirst(processos) {
     // Clonar os processos para não modificar o array original
@@ -112,29 +110,11 @@ function shortestJobFirst(processos) {
         });
     }
 
-    // Atualizar o tempo total da simulação
-    resultado.tempoTotal = tempoAtual;
-
-    // Calcular métricas médias
-    if (resultado.metricas.processos.length > 0) {
-        resultado.metricas.tempoMedioEspera = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoEspera, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioRetorno = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoRetorno, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioResposta = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoResposta, 0) / resultado.metricas.processos.length;
-    }
-
-    // Calcular utilização da CPU
-    resultado.metricas.utilizacaoCPU = ((tempoAtual - idleTime) / tempoAtual) * 100;
-
-    // Calcular throughput
-    resultado.metricas.throughput = processosCopia.length / tempoAtual;
-
     return resultado;
 }
 
 /**
  * Valida os parâmetros de entrada do algoritmo
- * @param {Array} processos - Array de objetos de processo
- * @return {Object} Objeto com status e mensagem de erro, se houver
  */
 function validarParametrosSJF(processos) {
     if (!Array.isArray(processos) || processos.length === 0) {
@@ -171,8 +151,6 @@ function validarParametrosSJF(processos) {
 
 /**
  * Função principal que executa o algoritmo SJF com validação
- * @param {Array} processos - Array de objetos de processo
- * @return {Object} Resultado da execução ou objeto de erro
  */
 function executarSJF(processos) {
     // Validar parâmetros

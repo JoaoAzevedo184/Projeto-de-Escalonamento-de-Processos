@@ -9,9 +9,6 @@
 
 /**
  * Executa o algoritmo de escalonamento por Loteria
- * @param {Array} processos - Array de objetos de processo: {id, chegada, duracao, bilhetes}
- * @param {Number} quantum - Valor do quantum de tempo (opcional, padrão: 1)
- * @return {Object} Resultado da execução com timeline e métricas
  */
 function escalonamentoLoteria(processos, quantum = 1) {
     // Clonar os processos para não modificar o array original
@@ -168,30 +165,11 @@ function escalonamentoLoteria(processos, quantum = 1) {
         }
     }
 
-    // Atualizar o tempo total da simulação
-    resultado.tempoTotal = tempoAtual;
-
-    // Calcular métricas médias
-    if (resultado.metricas.processos.length > 0) {
-        resultado.metricas.tempoMedioEspera = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoEspera, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioRetorno = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoRetorno, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioResposta = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoResposta, 0) / resultado.metricas.processos.length;
-    }
-
-    // Calcular utilização da CPU
-    resultado.metricas.utilizacaoCPU = ((tempoAtual - idleTime) / tempoAtual) * 100;
-
-    // Calcular throughput
-    resultado.metricas.throughput = processosCopia.length / tempoAtual;
-
     return resultado;
 }
 
 /**
  * Valida os parâmetros de entrada do algoritmo
- * @param {Array} processos - Array de objetos de processo
- * @param {Number} quantum - Valor do quantum (opcional)
- * @return {Object} Objeto com status e mensagem de erro, se houver
  */
 function validarParametrosLoteria(processos, quantum) {
     if (!Array.isArray(processos) || processos.length === 0) {
@@ -244,9 +222,6 @@ function validarParametrosLoteria(processos, quantum) {
 
 /**
  * Função principal que executa o algoritmo de Loteria com validação
- * @param {Array} processos - Array de objetos de processo
- * @param {Number} quantum - Valor do quantum (opcional)
- * @return {Object} Resultado da execução ou objeto de erro
  */
 function executarLoteria(processos, quantum) {
     // Validar parâmetros

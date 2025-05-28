@@ -8,9 +8,6 @@
 
 /**
  * Executa o algoritmo de escalonamento Round Robin
- * @param {Array} processos - Array de objetos de processo: {id, chegada, duracao}
- * @param {Number} quantum - Valor do quantum de tempo
- * @return {Object} Resultado da execução com timeline e métricas
  */
 function roundRobin(processos, quantum) {
     // Clonar os processos para não modificar o array original
@@ -153,30 +150,11 @@ function roundRobin(processos, quantum) {
         }
     }
 
-    // Atualizar o tempo total da simulação
-    resultado.tempoTotal = tempoAtual;
-
-    // Calcular métricas médias
-    if (resultado.metricas.processos.length > 0) {
-        resultado.metricas.tempoMedioEspera = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoEspera, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioRetorno = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoRetorno, 0) / resultado.metricas.processos.length;
-        resultado.metricas.tempoMedioResposta = resultado.metricas.processos.reduce((sum, p) => sum + p.tempoResposta, 0) / resultado.metricas.processos.length;
-    }
-
-    // Calcular utilização da CPU
-    resultado.metricas.utilizacaoCPU = ((tempoAtual - idleTime) / tempoAtual) * 100;
-
-    // Calcular throughput
-    resultado.metricas.throughput = processosCopia.length / tempoAtual;
-
     return resultado;
 }
 
 /**
  * Valida os parâmetros de entrada do algoritmo
- * @param {Array} processos - Array de objetos de processo
- * @param {Number} quantum - Valor do quantum
- * @return {Object} Objeto com status e mensagem de erro, se houver
  */
 function validarParametrosRR(processos, quantum) {
     if (!Array.isArray(processos) || processos.length === 0) {
@@ -217,9 +195,6 @@ function validarParametrosRR(processos, quantum) {
 
 /**
  * Função principal que executa o algoritmo Round Robin com validação
- * @param {Array} processos - Array de objetos de processo
- * @param {Number} quantum - Valor do quantum
- * @return {Object} Resultado da execução ou objeto de erro
  */
 function executarRR(processos, quantum) {
     // Validar parâmetros
