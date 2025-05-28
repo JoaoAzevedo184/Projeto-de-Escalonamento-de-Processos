@@ -349,31 +349,6 @@ function criarBlocoAnimado(bloco, timeline, tempoTotal) {
 }
 
 /**
- * Exibe as métricas de desempenho
- * @param {Object} resultado Resultado normalizado
- */
-function exibirMetricas(resultado) {
-    if (!resultado.metricas) {
-        console.warn("Métricas não encontradas no resultado");
-        return;
-    }
-    
-    // Tempo médio de espera
-    const tempoEspera = resultado.metricas.tempoEsperaMedio ?? resultado.metricas.tempoMedioEspera ?? 0;
-    document.getElementById('tempo-espera').textContent = tempoEspera.toFixed(2);
-    
-    // Tempo médio de retorno
-    const tempoRetorno = resultado.metricas.tempoTurnaroundMedio ?? resultado.metricas.tempoMedioRetorno ?? 0;
-    document.getElementById('tempo-retorno').textContent = tempoRetorno.toFixed(2);
-    
-    // Calcular throughput
-    const tempoTotal = calcularTempoTotal(resultado);
-    const throughput = resultado.processos.length / tempoTotal;
-    document.getElementById('throughput').textContent = throughput.toFixed(2);
-    
-}
-
-/**
  * Exibe as informações dos processos e do algoritmo selecionado
  * @param {Object} dados Dados carregados do localStorage
  * @param {Object} resultado Resultado normalizado
@@ -420,4 +395,13 @@ function exibirInformacoes(dados, resultado) {
         
         tabelaProcessos.appendChild(row);
     });
+}
+
+/**
+ * Função vazia para manter compatibilidade com o código existente
+ * @param {Object} resultado Resultado normalizado
+ */
+function exibirMetricas(resultado) {
+    // Função mantida vazia para compatibilidade
+    console.log("Métricas de desempenho foram desativadas");
 }

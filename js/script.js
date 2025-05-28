@@ -400,7 +400,7 @@ function getAlgoritmoNome(algoritmo) {
 }
 
 /**
- * Função auxiliar para salvar o quantum (mantida da versão original)
+ * Função auxiliar para salvar o quantum
  */
 function salvanumber(){
   const quantun = document.getElementById('qua').value;
